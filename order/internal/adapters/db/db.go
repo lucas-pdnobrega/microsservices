@@ -2,24 +2,25 @@ package db
 
 import (
 	"fmt"
-	"github.com/ruandg/microservices/order/internal/application/core/domain"
+
+	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/domain"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type Order struct {
 	gorm.Model
-	CustomerID	int64
-	Status		string
-	OrderItems	[]OrderItem
+	CustomerID int64
+	Status     string
+	OrderItems []OrderItem
 }
 
 type OrderItem struct {
 	gorm.Model
-	ProductCode	string
-	UnitPrice	float32
-	Quantity	int32
-	OrderID		uint
+	ProductCode string
+	UnitPrice   float32
+	Quantity    int32
+	OrderID     uint
 }
 
 type Adapter struct {
@@ -44,17 +45,17 @@ func (a Adapter) Get(id string) (domain.Order, error) {
 	var orderItems []domain.OrderItem
 	for _, orderItem := range orderEntity.OrderItems {
 		orderItems = append(orderItems, domain.OrderItem{
-			ProductCode:	orderItem.ProductCode,
-			UnitPrice:		orderItem.UnitPrice,
-			Quantity:		orderItem.Quantity,
+			ProductCode: orderItem.ProductCode,
+			UnitPrice:   orderItem.UnitPrice,
+			Quantity:    orderItem.Quantity,
 		})
 	}
 	order := domain.Order{
-		ID:		int64(orderEntity.ID),
-		CustomerID:		orderEntity.CustomerID,
-		Status:			orderEntity.Status,
-		OrderItems:		orderItems,
-		CreatedAt:		orderEntity.CreatedAt.UnixNano(),
+		ID:         int64(orderEntity.ID),
+		CustomerID: orderEntity.CustomerID,
+		Status:     orderEntity.Status,
+		OrderItems: orderItems,
+		CreatedAt:  orderEntity.CreatedAt.UnixNano(),
 	}
 	return order, res.Error
 }
@@ -63,15 +64,15 @@ func (a Adapter) Save(order *domain.Order) error {
 	var orderItems []domain.OrderItem
 	for _, orderItem := range orderEntity.OrderItems {
 		orderItems = append(orderItems, domain.OrderItem{
-			ProductCode:	orderItem.ProductCode,
-			UnitPrice:		orderItem.UnitPrice,
-			Quantity:		orderItem.Quantity,
+			ProductCode: orderItem.ProductCode,
+			UnitPrice:   orderItem.UnitPrice,
+			Quantity:    orderItem.Quantity,
 		})
 	}
 	orderModel := Order{
-		CustomerID:		orderEntity.CustomerID,
-		Status:			orderEntity.Status,
-		OrderItems:		orderItems,
+		CustomerID: orderEntity.CustomerID,
+		Status:     orderEntity.Status,
+		OrderItems: orderItems,
 	}
 	res := a.db.Create(&orderModel)
 	if res.Error == nil {
