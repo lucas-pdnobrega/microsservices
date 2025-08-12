@@ -3,18 +3,22 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"net"
 	"log"
+	"net"
+
 	"github.com/lucas-pdnobrega/microservices-proto/golang/order"
 	"github.com/lucas-pdnobrega/microservices/order/config"
 	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/domain"
 	"github.com/lucas-pdnobrega/microservices/order/internal/ports"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
-func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest)
-	(*order.CreateOrderResponse, error) {
+func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest) (*order.CreateOrderResponse, error) {
+	log.WithContext(ctx).Info("Creating order...")
+
 	var orderItems []domain.OrderItem
 	for _, orderItem := range request.OrderItems {
 		orderItems = append(orderItems, domain.OrderItem{
@@ -23,10 +27,14 @@ func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest)
 			Quantity:		orderItem.Quantity,
 		})
 	}
+
 	newOrder := domain.NewOrder(int64(request.CostumerId), orderItems)
 	result, err := a.api.PlaceOrder(newOrder)
-	if err != nil {
+	code := status.Code(err)
+	if code == codes.InvalidArgument {
 		return nil, err
+	} else if err != nil {
+		return nil, status.New(codes.Internal, fmt.Sprintf("failed to order! %v ", err)).Err()
 	}
 	return &order.CreateOrderResponse{OrderId: int32(result.ID)}, nil
 }
