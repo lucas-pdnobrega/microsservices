@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/lucas-pdnobrega/microservices/order/config"
-	"github.com/lucas-pdnobrega/microservices/order/internal/adapters/db"
-	"github.com/lucas-pdnobrega/microservices/order/internal/adapters/grpc"
-	"github.com/lucas-pdnobrega/microservices/order/internal/adapters/payment"
-	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/api"
+	"order/config"
+	"order/internal/adapters/db"
+	"order/internal/adapters/grpc"
+	"order/internal/adapters/payment"
+	"order/internal/application/core/api"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database. Error : %v", err)
 	}
-	paymentAdapter, err := payment.NewAdapter(config.GetPaymentServiceUrl())
+	paymentAdapter, err := payment_adapter.NewAdapter(config.GetPaymentServiceUrl())
 	if err != nil {
 		log.Fatalf("Failed to initialize payment stub. Error : %v", err)
 	}

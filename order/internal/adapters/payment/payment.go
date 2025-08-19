@@ -4,13 +4,15 @@ import (
 	"context"
 	"log"
 	"time"
+
+	"order/internal/application/core/domain"
+
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	"github.com/ruandg/microservices-proto/golang/payment"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
-	"github.com/lucas-pdnobrega/microservices-proto/golang/payment"
-	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/domain"
 )
 
 type Adapter struct {
@@ -21,12 +23,15 @@ func NewAdapter(paymentServiceUrl string) (*Adapter, error) {
 	var opts []grpc.DialOption
 	opts = append(
 		opts,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(grpc_retry.UnaryClientInterceptor(
 			grpc_retry.WithCodes(codes.Unavailable, codes.ResourceExhausted),
 			grpc_retry.WithMax(5),
 			grpc_retry.WithBackoff(grpc_retry.BackoffLinear(2*time.Second)),
 		)),
+	)
+	opts = append(
+		opts, 
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	conn, err := grpc.Dial(paymentServiceUrl, opts...)
 	if err != nil {
@@ -37,7 +42,7 @@ func NewAdapter(paymentServiceUrl string) (*Adapter, error) {
 	return &Adapter{payment: client}, nil
 }
 
-func (a *Adapter) Charge(order *domain.Order) error {
+func (a *Adapter) Charge(order domain.Order) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -52,7 +57,8 @@ func (a *Adapter) Charge(order *domain.Order) error {
 		if st, ok := status.FromError(err); ok && st.Code() == codes.DeadlineExceeded {
 			log.Printf("Timeout: deadline exceeded for Payment.Charge for order %d", order.ID)
 		}
+		return err
 	}
 
-	return err
+	return nil
 }

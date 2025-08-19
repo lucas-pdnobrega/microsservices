@@ -3,13 +3,15 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 
-	"github.com/lucas-pdnobrega/microservices-proto/golang/order"
-	"github.com/lucas-pdnobrega/microservices/order/config"
-	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/domain"
-	"github.com/lucas-pdnobrega/microservices/order/internal/ports"
+	log "github.com/sirupsen/logrus"
+
+	"order/config"
+	"order/internal/application/core/domain"
+	"order/internal/ports"
+
+	"github.com/ruandg/microservices-proto/golang/order"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -22,9 +24,9 @@ func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest) 
 	var orderItems []domain.OrderItem
 	for _, orderItem := range request.OrderItems {
 		orderItems = append(orderItems, domain.OrderItem{
-			ProductCode:	orderItem.ProductCode,
-			UnitPrice:		orderItem.UnitPrice,
-			Quantity:		orderItem.Quantity,
+			ProductCode: orderItem.ProductCode,
+			UnitPrice:   orderItem.UnitPrice,
+			Quantity:    orderItem.Quantity,
 		})
 	}
 
@@ -40,7 +42,7 @@ func (a Adapter) Create(ctx context.Context, request *order.CreateOrderRequest) 
 }
 
 type Adapter struct {
-	api ports.APIPort
+	api  ports.APIPort
 	port int
 	order.UnimplementedOrderServer
 }

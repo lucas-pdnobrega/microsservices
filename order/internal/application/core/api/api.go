@@ -1,10 +1,8 @@
 package api
 
 import (
-	"fmt"
-
-	"github.com/lucas-pdnobrega/microservices/order/internal/application/core/domain"
-	"github.com/lucas-pdnobrega/microservices/order/internal/ports"
+	"order/internal/application/core/domain"
+	"order/internal/ports"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,14 +26,17 @@ func (a Application) PlaceOrder(order domain.Order) (domain.Order, error) {
 	}
 
 	if totalQuantity > 50 {
-		return domain.Order{}, status.Errorf(codes.InvalidArgument, 
-			fmt.Sprintf("Order's total item quantity is %d, it cannot exceed 50", totalQuantity)).Err()
+		return domain.Order{}, status.Errorf(
+			codes.InvalidArgument,
+			"Order's total item quantity is %d, it cannot exceed 50",
+			totalQuantity,
+		)
 	}
 	err := a.db.Save(&order)
 	if err != nil {
 		return domain.Order{}, err
 	}
-	paymentErr := a.payment.Charge(&order)
+	paymentErr := a.payment.Charge(order)
 	if paymentErr != nil {
 		return domain.Order{}, paymentErr
 	}
